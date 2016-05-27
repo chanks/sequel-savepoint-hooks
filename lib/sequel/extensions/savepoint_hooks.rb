@@ -14,14 +14,16 @@ module Sequel
       super(conn, opts)
     end
 
-    def apply_transaction_options(conn, opts, hash)
+    def transaction_options(conn, opts)
+      hash = super
+
       if t = _trans(conn)
         t[:hooks].push opts[:hooks]
       else
         hash[:hooks] = [opts[:hooks]]
       end
 
-      super
+      hash
     end
 
     def transaction_finished?(conn)
@@ -29,7 +31,7 @@ module Sequel
       super
     end
 
-    def add_hook(conn, type, block)
+    def add_transaction_hook(conn, type, block)
       t = _trans(conn)
       current_level = savepoint_level(conn)
       hook_setting = t[:hooks][current_level - 1]
@@ -42,7 +44,7 @@ module Sequel
       level_hooks << block
     end
 
-    def get_hooks(conn, committed)
+    def transaction_hooks(conn, committed)
       t = _trans(conn)
       level = savepoint_level(conn)
 
