@@ -7,4 +7,3 @@ require 'minitest/hooks'
 require 'minitest/pride'
 
 require 'sequel'
-require 'pry'
