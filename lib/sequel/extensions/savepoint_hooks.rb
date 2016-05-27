@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'digest/md5'
-
 require 'sequel/extensions/savepoint_hooks/version'
 
 module Sequel
