@@ -4,37 +4,35 @@ require 'spec_helper'
 
 describe Sequel::SavepointHooks do
   before do
-    @db = Sequel.mock
-    @db.extension :savepoint_hooks
     @hooks = []
   end
 
   describe "when transactions are opened without any special arguments" do
     it "transactions should work as expected" do
-      @db.transaction do
-        @db.execute "foo"
+      DB.transaction do
+        DB.execute "foo"
       end
 
-      assert_equal ["BEGIN", "foo", "COMMIT"], @db.sqls
+      assert_equal ["BEGIN", "foo", "COMMIT"], DB.sqls
     end
 
     it "savepoints should work as expected" do
-      @db.transaction do
-        @db.transaction(savepoint: true) do
-          @db.execute "foo"
+      DB.transaction do
+        DB.transaction(savepoint: true) do
+          DB.execute "foo"
         end
       end
 
-      assert_equal ["BEGIN", "SAVEPOINT autopoint_1", "foo", "RELEASE SAVEPOINT autopoint_1", "COMMIT"], @db.sqls
+      assert_equal ["BEGIN", "SAVEPOINT autopoint_1", "foo", "RELEASE SAVEPOINT autopoint_1", "COMMIT"], DB.sqls
     end
 
     it "after_commit should behave normally" do
-      @db.transaction do
-        @db.after_commit { @hooks << :commit1 }
-        @db.transaction(savepoint: true) { @db.after_commit { @hooks << :commit2} }
-        @db.after_commit { @hooks << :commit3 }
-        @db.transaction(savepoint: true) { @db.after_commit { @hooks << :commit4 } }
-        @db.after_commit { @hooks << :commit5 }
+      DB.transaction do
+        DB.after_commit { @hooks << :commit1 }
+        DB.transaction(savepoint: true) { DB.after_commit { @hooks << :commit2} }
+        DB.after_commit { @hooks << :commit3 }
+        DB.transaction(savepoint: true) { DB.after_commit { @hooks << :commit4 } }
+        DB.after_commit { @hooks << :commit5 }
 
         assert_equal [], @hooks
       end
@@ -45,9 +43,9 @@ describe Sequel::SavepointHooks do
 
   describe "when a transaction is opened with hooks: true" do
     it "should trigger after_commit hooks as normal" do
-      @db.transaction hooks: true do
-        @db.after_commit   { @hooks << :commit   }
-        @db.after_rollback { @hooks << :rollback }
+      DB.transaction hooks: true do
+        DB.after_commit   { @hooks << :commit   }
+        DB.after_rollback { @hooks << :rollback }
 
         assert_equal [], @hooks
       end
@@ -56,9 +54,9 @@ describe Sequel::SavepointHooks do
     end
 
     it "should trigger after_rollback hooks as normal" do
-      @db.transaction hooks: true do
-        @db.after_commit   { @hooks << :commit   }
-        @db.after_rollback { @hooks << :rollback }
+      DB.transaction hooks: true do
+        DB.after_commit   { @hooks << :commit   }
+        DB.after_rollback { @hooks << :rollback }
 
         assert_equal [], @hooks
 
@@ -71,9 +69,9 @@ describe Sequel::SavepointHooks do
 
   describe "when a transaction is opened with hooks: false" do
     it "should not trigger after_commit hooks" do
-      @db.transaction hooks: false do
-        @db.after_commit   { @hooks << :commit   }
-        @db.after_rollback { @hooks << :rollback }
+      DB.transaction hooks: false do
+        DB.after_commit   { @hooks << :commit   }
+        DB.after_rollback { @hooks << :rollback }
 
         assert_equal [], @hooks
       end
@@ -82,9 +80,9 @@ describe Sequel::SavepointHooks do
     end
 
     it "should not trigger after_rollback hooks" do
-      @db.transaction hooks: false do
-        @db.after_commit   { @hooks << :commit   }
-        @db.after_rollback { @hooks << :rollback }
+      DB.transaction hooks: false do
+        DB.after_commit   { @hooks << :commit   }
+        DB.after_rollback { @hooks << :rollback }
 
         assert_equal [], @hooks
 
@@ -97,22 +95,22 @@ describe Sequel::SavepointHooks do
 
   describe "when a savepoint is opened with hooks: true" do
     it "should trigger after_commit hooks" do
-      @db.transaction do
-        @db.after_commit   { @hooks << :commit1   }
-        @db.after_rollback { @hooks << :rollback1 }
+      DB.transaction do
+        DB.after_commit   { @hooks << :commit1   }
+        DB.after_rollback { @hooks << :rollback1 }
 
-        @db.transaction savepoint: true, hooks: true do
-          @db.after_commit   { @hooks << :commit2   }
-          @db.after_rollback { @hooks << :rollback2 }
+        DB.transaction savepoint: true, hooks: true do
+          DB.after_commit   { @hooks << :commit2   }
+          DB.after_rollback { @hooks << :rollback2 }
 
           assert_equal [], @hooks
         end
 
         assert_equal [:commit2], @hooks
 
-        @db.transaction savepoint: true do
-          @db.after_commit   { @hooks << :commit3   }
-          @db.after_rollback { @hooks << :rollback3 }
+        DB.transaction savepoint: true do
+          DB.after_commit   { @hooks << :commit3   }
+          DB.after_rollback { @hooks << :rollback3 }
 
           assert_equal [:commit2], @hooks
         end
@@ -124,13 +122,13 @@ describe Sequel::SavepointHooks do
     end
 
     it "should trigger after_rollback hooks" do
-      @db.transaction do
-        @db.after_commit   { @hooks << :commit1   }
-        @db.after_rollback { @hooks << :rollback1 }
+      DB.transaction do
+        DB.after_commit   { @hooks << :commit1   }
+        DB.after_rollback { @hooks << :rollback1 }
 
-        @db.transaction savepoint: true, hooks: true do
-          @db.after_commit   { @hooks << :commit2   }
-          @db.after_rollback { @hooks << :rollback2 }
+        DB.transaction savepoint: true, hooks: true do
+          DB.after_commit   { @hooks << :commit2   }
+          DB.after_rollback { @hooks << :rollback2 }
 
           assert_equal [], @hooks
 
@@ -139,9 +137,9 @@ describe Sequel::SavepointHooks do
 
         assert_equal [:rollback2], @hooks
 
-        @db.transaction savepoint: true do
-          @db.after_commit   { @hooks << :commit3   }
-          @db.after_rollback { @hooks << :rollback3 }
+        DB.transaction savepoint: true do
+          DB.after_commit   { @hooks << :commit3   }
+          DB.after_rollback { @hooks << :rollback3 }
 
           assert_equal [:rollback2], @hooks
 
@@ -156,27 +154,27 @@ describe Sequel::SavepointHooks do
     end
 
     it "should not retain hooks when leaving and then reentering a transaction nesting level" do
-      @db.transaction hooks: true do
-        @db.after_commit { @hooks << :commit1 }
+      DB.transaction hooks: true do
+        DB.after_commit { @hooks << :commit1 }
 
-        @db.transaction savepoint: true, hooks: true do
-          @db.after_commit { @hooks << :commit2 }
+        DB.transaction savepoint: true, hooks: true do
+          DB.after_commit { @hooks << :commit2 }
           assert_equal [], @hooks
         end
 
-        @db.after_commit { @hooks << :commit3 }
+        DB.after_commit { @hooks << :commit3 }
 
-        @db.transaction savepoint: true, hooks: true do
-          @db.after_commit { @hooks << :commit4 }
+        DB.transaction savepoint: true, hooks: true do
+          DB.after_commit { @hooks << :commit4 }
           assert_equal [:commit2], @hooks
         end
 
         assert_equal [:commit2, :commit4], @hooks
 
-        @db.after_commit { @hooks << :commit5 }
+        DB.after_commit { @hooks << :commit5 }
 
-        @db.transaction savepoint: true do
-          @db.after_commit { @hooks << :commit6 }
+        DB.transaction savepoint: true do
+          DB.after_commit { @hooks << :commit6 }
           assert_equal [:commit2, :commit4], @hooks
         end
 
@@ -189,22 +187,22 @@ describe Sequel::SavepointHooks do
 
   describe "when a transaction is opened with hooks: :savepoint" do
     it "should open savepoints inside the transaction with callbacks" do
-      @db.transaction hooks: :savepoint do
-        @db.after_commit   { @hooks << :commit1   }
-        @db.after_rollback { @hooks << :rollback1 }
+      DB.transaction hooks: :savepoint do
+        DB.after_commit   { @hooks << :commit1   }
+        DB.after_rollback { @hooks << :rollback1 }
 
-        @db.transaction savepoint: true do
-          @db.after_commit   { @hooks << :commit2   }
-          @db.after_rollback { @hooks << :rollback2 }
+        DB.transaction savepoint: true do
+          DB.after_commit   { @hooks << :commit2   }
+          DB.after_rollback { @hooks << :rollback2 }
 
           assert_equal [], @hooks
         end
 
         assert_equal [:commit2], @hooks
 
-        @db.transaction savepoint: true do
-          @db.after_commit   { @hooks << :commit3   }
-          @db.after_rollback { @hooks << :rollback3 }
+        DB.transaction savepoint: true do
+          DB.after_commit   { @hooks << :commit3   }
+          DB.after_rollback { @hooks << :rollback3 }
 
           assert_equal [:commit2], @hooks
         end
@@ -216,13 +214,13 @@ describe Sequel::SavepointHooks do
     end
 
     it "should support being overridden with :hooks=>false" do
-      @db.transaction hooks: :savepoint do
-        @db.after_commit { @hooks << :commit1 }
-        @db.transaction savepoint: true, hooks: false do
-          @db.after_commit { @hooks << :commit2 }
+      DB.transaction hooks: :savepoint do
+        DB.after_commit { @hooks << :commit1 }
+        DB.transaction savepoint: true, hooks: false do
+          DB.after_commit { @hooks << :commit2 }
         end
         assert_equal [], @hooks
-        @db.after_commit { @hooks << :commit3 }
+        DB.after_commit { @hooks << :commit3 }
         assert_equal [], @hooks
       end
 
@@ -230,14 +228,14 @@ describe Sequel::SavepointHooks do
     end
 
     it "should support being overridden with :hooks=>:savepoint" do
-      @db.transaction hooks: :savepoint do
-        @db.after_commit { @hooks << :commit1 }
+      DB.transaction hooks: :savepoint do
+        DB.after_commit { @hooks << :commit1 }
 
-        @db.transaction savepoint: true, hooks: :savepoint do
-          @db.after_commit { @hooks << :commit2 }
+        DB.transaction savepoint: true, hooks: :savepoint do
+          DB.after_commit { @hooks << :commit2 }
 
-          @db.transaction savepoint: true do
-            @db.after_commit { @hooks << :commit3 }
+          DB.transaction savepoint: true do
+            DB.after_commit { @hooks << :commit3 }
           end
 
           assert_equal [:commit3], @hooks
@@ -250,22 +248,22 @@ describe Sequel::SavepointHooks do
     end
 
     it "should play well with :auto_savepoint" do
-      @db.transaction auto_savepoint: true, hooks: :savepoint do
-        @db.after_commit   { @hooks << :commit1   }
-        @db.after_rollback { @hooks << :rollback1 }
+      DB.transaction auto_savepoint: true, hooks: :savepoint do
+        DB.after_commit   { @hooks << :commit1   }
+        DB.after_rollback { @hooks << :rollback1 }
 
-        @db.transaction do
-          @db.after_commit   { @hooks << :commit2   }
-          @db.after_rollback { @hooks << :rollback2 }
+        DB.transaction do
+          DB.after_commit   { @hooks << :commit2   }
+          DB.after_rollback { @hooks << :rollback2 }
 
           assert_equal [], @hooks
         end
 
         assert_equal [:commit2], @hooks
 
-        @db.transaction do
-          @db.after_commit   { @hooks << :commit3   }
-          @db.after_rollback { @hooks << :rollback3 }
+        DB.transaction do
+          DB.after_commit   { @hooks << :commit3   }
+          DB.after_rollback { @hooks << :rollback3 }
 
           assert_equal [:commit2], @hooks
         end

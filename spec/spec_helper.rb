@@ -7,3 +7,6 @@ require 'minitest/hooks'
 require 'minitest/pride'
 
 require 'sequel'
+
+DB = Sequel.mock
+DB.extension :savepoint_hooks
