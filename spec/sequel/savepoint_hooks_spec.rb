@@ -4,6 +4,7 @@ require 'spec_helper'
 
 describe Sequel::SavepointHooks do
   before do
+    DB.sqls.clear
     @hooks = []
   end
 
