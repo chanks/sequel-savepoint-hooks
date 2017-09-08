@@ -24,5 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-hooks', '~> 1.2.0'
   spec.add_development_dependency 'pg'
 
-  spec.add_dependency 'sequel', '~> 4.35'
+  spec.add_dependency 'sequel', '~> 5.0'
 end
